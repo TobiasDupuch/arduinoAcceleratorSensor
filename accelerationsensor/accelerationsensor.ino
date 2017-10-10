@@ -1,6 +1,7 @@
 #include <Wire.h> // Include the Wire library
 #include <MMA_7455.h> // Include the MMA_7455 library
 #include <math.h>
+#include <Kalman.h>
 
 #include <Bridge.h>
 #include <BridgeClient.h>
@@ -26,6 +27,11 @@ unsigned long  timeSince;
 int mappedTimeSince;
 int lastSentVelocitiy;
 int lastSentPitch;
+
+
+//Kalman
+double kalman_vCalc;
+Kalman myFilter(0.125,32,500,0);
 
 void setup() {
   Bridge.begin();
@@ -72,6 +78,12 @@ void loop() {
   float vCalc = sqrt((xVal * xVal)+(yVal*yVal)+(zVal*zVal));
   //calibrate vCalc
   vCalc = vCalc - 62;
+
+
+  kalman_vCalc = myFilter.getFilteredValue(vCalc);
+  Serial.print(vCalc);
+  Serial.println(kalman_vCalc);
+
 
   // check if number
   if (!isnan(lastPoint)) {
